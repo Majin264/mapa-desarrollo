@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi mapa de desarrollo personal y profesional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Lienzo negro con grano; un hilo luminoso (fibra hilada) recorre seis estaciones; la cámara viaja entre ellas */
+  --bg:#0a0a09;
+  --ink:#efede6;
+  --muted:#8f8d86;
+  --line:rgba(239,237,230,.14);
+  --card:#141412;
+  --card-hi:#1c1c19;
+  --pink:#ff9ccc;
+  --blue:#9ad6ff;
+  --yellow:#ffe27a;
+  --font:"Archivo", "Helvetica Neue", Arial, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--font);overflow:hidden}
+body{--mx:50%;--my:40%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+.spot{position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(600px circle at var(--mx) var(--my),rgba(255,156,204,.10),transparent 60%),
+  radial-gradient(900px circle at 8% 10%,rgba(154,214,255,.10),transparent 60%),
+  radial-gradient(800px circle at 95% 90%,rgba(255,226,122,.08),transparent 60%),
+  radial-gradient(700px circle at 90% 5%,rgba(255,156,204,.07),transparent 60%)}
+.grain{position:fixed;inset:-50%;pointer-events:none;opacity:.13;mix-blend-mode:overlay;z-index:5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 1.2s steps(4) infinite}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-1%,3%)}100%{transform:translate(0,0)}}
+
+.stage{position:fixed;left:0;right:0;top:0;bottom:64px;overflow:hidden}
+.world{position:absolute;left:0;top:0;width:3200px;height:2000px;transform-origin:0 0;
+  transition:transform 1.15s cubic-bezier(.65,0,.25,1)}
+.thread{position:absolute;inset:0;overflow:visible;pointer-events:none}
+.thread .glow{fill:none;stroke:url(#tg);stroke-opacity:.35;stroke-width:16;filter:blur(8px)}
+.thread .core{fill:none;stroke:url(#tg);stroke-width:3}
+.thread .flow{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-dasharray:6 180;animation:flow 9s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-1860}}
+.bead{fill:var(--bg);stroke-width:3}
+
+/* centro */
+.hub{position:absolute;left:1600px;top:1000px;width:900px;transform:translate(-50%,-50%);text-align:center;cursor:pointer}
+.hub .who{font-size:22px;letter-spacing:.32em;text-transform:uppercase;color:var(--pink);font-weight:600}
+.hub h1 span{background:linear-gradient(90deg,var(--pink),var(--blue) 55%,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hub h1{font-size:104px;line-height:.92;font-weight:800;font-stretch:118%;letter-spacing:-.02em;margin:26px 0 30px;text-wrap:balance}
+.hub .meta{font-size:22px;color:var(--muted);letter-spacing:.04em}
+.hub .hint{margin-top:44px;display:inline-flex;gap:12px;align-items:center;font-size:20px;border:1px solid var(--blue);color:var(--blue);padding:14px 26px;border-radius:999px}
+
+/* estaciones */
+.frame{position:absolute;width:780px;height:560px;padding:38px 40px;border:1px solid var(--line);border-radius:6px;
+  background:var(--bg);transition:opacity .6s, border-color .4s;cursor:pointer;display:flex;flex-direction:column;gap:22px}
+.frame{border-top:6px solid var(--c)}
+.frame:hover{border-color:var(--c)}
+.frame.active{cursor:default;border-color:color-mix(in srgb,var(--c) 55%,transparent);border-top-color:var(--c)}
+.world.zoomed .frame:not(.active), .world.zoomed .hub{opacity:.18}
+.fhead{display:flex;align-items:baseline;gap:20px}
+.fnum{font-size:20px;color:var(--c);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.1em}
+.ftitle{font-size:52px;font-weight:800;font-stretch:115%;letter-spacing:-.015em;line-height:1}
+.fsub{font-size:19px;color:var(--muted);line-height:1.4;max-width:640px;margin-top:-6px}
+.cards{display:grid;gap:14px;flex:1;min-height:0;grid-auto-rows:minmax(0,1fr)}
+.c3{grid-template-columns:repeat(3,1fr)}
+.c2{grid-template-columns:repeat(2,1fr)}
+.c1{grid-template-columns:1fr}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px 20px 18px;text-align:left;
+  position:relative;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;gap:10px;padding-bottom:48px;transition:background .25s,border-color .25s,transform .25s}
+.card:hover{background:color-mix(in srgb,var(--c) 10%,var(--card));border-color:var(--c);transform:translateY(-2px)}
+.card .k{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--c);font-weight:600}
+.card .t{font-size:25px;font-weight:700;font-stretch:108%;line-height:1.08}
+.card .tease{font-size:15px;line-height:1.4;color:var(--muted)}
+.card .plus{position:absolute;right:16px;bottom:14px;width:28px;height:28px;border:1px solid var(--c);color:var(--c);border-radius:50%;display:grid;place-items:center;font-size:18px;line-height:1}
+.statement{font-size:24px;line-height:1.35;font-weight:500;max-width:680px}
+.big .t{font-size:40px}
+
+/* barra */
+.bar{position:fixed;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 20px;border-top:1px solid var(--line);background:var(--bg);z-index:6}
+.bar .name{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrls{display:flex;gap:8px;align-items:center}
+.ctrls button{height:38px;min-width:38px;padding:0 14px;border:1px solid var(--line);border-radius:999px;font-size:14px}
+.ctrls button:hover{border-color:var(--pink);color:var(--pink)}
+#home{border-color:var(--blue);color:var(--blue)}
+.step{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:110px;text-align:right}
+
+/* ventana emergente */
+.pop{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:20px;background:rgba(5,5,4,.72);backdrop-filter:blur(6px);
+  opacity:0;pointer-events:none;transition:opacity .3s}
+.pop.open{opacity:1;pointer-events:auto}
+.panel{--c:var(--pink);border-top:6px solid var(--c) !important;width:min(600px,100%);max-height:calc(100% - 20px);overflow:auto;background:var(--card);border:1px solid rgba(239,237,230,.25);border-radius:6px;padding:34px 34px 28px;
+  transform:scale(.94) translateY(10px);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.pop.open .panel{transform:none}
+.panel .k{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--c);font-weight:600}
+.panel b{color:var(--c)}
+.panel h2{font-size:40px;font-weight:800;font-stretch:115%;line-height:1;margin:12px 0 18px;text-wrap:balance}
+.panel p{font-size:17px;line-height:1.6;max-width:65ch}
+.panel p + p{margin-top:12px}
+.panel dl{display:grid;grid-template-columns:max-content 1fr;gap:10px 18px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line);font-size:15px;line-height:1.5}
+.panel dt{color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-size:12px;padding-top:3px}
+.panel .back{margin-top:26px;height:42px;padding:0 20px;border:1px solid var(--c);color:var(--c);border-radius:999px;font-size:14px}
+.panel .back:hover{background:var(--c);color:var(--bg)}
+
+@media (max-width:640px){
+  .bar .name{display:none}
+  .panel{padding:26px 22px 22px}
+  .panel h2{font-size:30px}
+  .panel dl{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .world,.pop,.panel,.card{transition:none}
+  .grain,.thread .flow{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="spot"></div>
+<div class="grain"></div>
+
+<div class="stage" id="stage">
+  <div class="world" id="world">
+    <svg class="thread" id="thread" viewBox="0 0 3200 2000" width="3200" height="2000" aria-hidden="true"></svg>
+    <div class="hub" id="hub" role="button" tabindex="0" aria-label="Vista general">
+      <div class="who">María José Escobar León</div>
+      <h1>Mi mapa de <span>desarrollo personal y profesional</span></h1>
+      <div class="meta">Habilidades Gerenciales · Ingeniería de Materiales · Universidad de Antioquia · 2026</div>
+      <div class="hint">Haz clic en una estación o usa las flechas →</div>
+    </div>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="name">Mi mapa de desarrollo personal y profesional</div>
+  <div class="ctrls">
+    <button id="prev" aria-label="Estación anterior">←</button>
+    <button id="home">Vista general</button>
+    <button id="next" aria-label="Estación siguiente">→</button>
+  </div>
+  <div class="step" id="step">Vista general</div>
+</div>
+
+<div class="pop" id="pop" role="dialog" aria-modal="true" aria-labelledby="popTitle">
+  <div class="panel">
+    <div class="k" id="popK"></div>
+    <h2 id="popTitle"></h2>
+    <div id="popBody"></div>
+    <button class="back" id="popBack">← Volver</button>
+  </div>
+</div>
+
+<script>
+const S = [
+  { id:"motivadores", c:"pink", title:"Mis motivadores", sub:"Lo que más influye en mis decisiones actuales.",
+    x:700, y:520, r:-3, cols:"c3",
+    cards:[
+      {k:"Motivador", t:"Curiosidad", tease:"Tener oportunidades para aprender cosas nuevas.",
+       body:["Tener oportunidades para aprender cosas nuevas.","<b>Relación con mis decisiones:</b> me lleva a explorar temas más allá del currículo y a convertir mis preguntas en proyectos propios. Así empecé a programar y a investigar en ingeniería de materiales."]},
+      {k:"Motivador", t:"Autonomía", tease:"Poder proponer ideas y asumir responsabilidades.",
+       body:["Poder proponer ideas y asumir responsabilidades.","<b>Relación con mis decisiones:</b> prefiero proponer y liderar mis propios proyectos. Eso me ha llevado a buscar la asesoría de profesores y a trabajar de forma independiente en el laboratorio."]},
+      {k:"Motivador", t:"Propósito", tease:"Sentir que mi trabajo aporta a algo importante.",
+       body:["Sentir que mi trabajo aporta a algo que considero importante.","<b>Relación con mis decisiones:</b> elijo proyectos que respondan a un problema real, como desarrollar fibras de alginato para una industria textil con menor impacto ambiental."]}
+    ]},
+  { id:"fortalezas", c:"blue", title:"Mis fortalezas", sub:"Capacidades que me ayudan a avanzar, con ejemplos concretos.",
+    x:1600, y:330, r:2, cols:"c2",
+    cards:[
+      {k:"Fortaleza", t:"Aprendizaje autónomo", tease:"Programación, LaTeX, GitHub, VS Code y francés.",
+       body:["He aprendido programación por mi cuenta mientras desarrollaba mis proyectos personales, usando herramientas como LaTeX, GitHub y VS Code.","Con la misma disciplina estoy aprendiendo francés poco a poco."]},
+      {k:"Fortaleza", t:"Rigor técnico y estético", tease:"Reviso y mejoro todo lo que desarrollo.",
+       body:["No doy por terminado lo que hago sin revisarlo y mejorarlo.","Contrasto mi trabajo con bibliografía y referencias, y busco retroalimentación de profesores y de herramientas de inteligencia artificial."]},
+      {k:"Fortaleza", t:"Pensamiento estratégico", tease:"Mis proyectos forman una cadena de metas.",
+       body:["Planteo mis proyectos como parte de una cadena de metas y con un propósito concreto.","Por ejemplo, mi proyecto de fibras de alginato para uso textil nace como respuesta al daño ambiental que causa la industria de la moda."]},
+      {k:"Fortaleza · en desarrollo", t:"Inteligencia emocional", tease:"Conocerme a mí y entender a los demás.",
+       body:["Trabajo en conocerme para identificar qué debo mejorar, reconocer cuándo necesito descansar, expresar lo que siento y cuidarme.","Esa misma apertura me permite entender los sentimientos de los demás: las personas cercanas suelen acudir a mí por consejo en situaciones que involucran a otros."]}
+    ]},
+  { id:"diagnostico", c:"yellow", title:"Mi diagnóstico", sub:"Una oportunidad de mejora y los factores del entorno que influyen en mi desarrollo.",
+    x:2500, y:520, r:3, cols:"c3",
+    cards:[
+      {k:"Oportunidad de mejora", t:"Manejo del tiempo", tease:"Equilibrar la universidad y mis proyectos.",
+       body:["Quiero organizar mejor mi tiempo para equilibrar la universidad y mis proyectos personales, y avanzar de forma constante en lo que me propongo.","Por eso mi plan de acción incluye un bloque semanal fijo para mis proyectos."]},
+      {k:"Entorno · obstáculo", t:"Alta carga académica", tease:"Varias materias exigentes al mismo tiempo.",
+       body:["Cursar varias materias exigentes al mismo tiempo reduce el tiempo y la energía que puedo dedicar a mis proyectos personales."]},
+      {k:"Entorno · ventaja", t:"Mi familia y mis profesores", tease:"Apoyo en casa y asesoría académica.",
+       body:["Vivo con mi familia, que me brinda hogar, alimentación, un espacio de estudio y apoyo económico.","Además, cuento con profesores que me asesoran en mis proyectos personales."]}
+    ]},
+  { id:"meta", c:"pink", title:"Mi meta", statement:"Antes de terminar 2027, desarrollar mi carrera en ingeniería de materiales con dos logros concretos.",
+    x:2550, y:1480, r:-2, cols:"c3",
+    cards:[
+      {k:"Logro 1", t:"Un proyecto terminado", tease:"Con propósito claro y documentado.",
+       body:["Terminar y documentar un proyecto de investigación con un propósito claro."]},
+      {k:"Logro 2", t:"Formación externa", tease:"Pasantía o curso, nacional o internacional.",
+       body:["Acceder a una experiencia de formación fuera de mi universidad: una pasantía o un curso, a nivel nacional o internacional."]},
+      {k:"Para mí", t:"¿Qué es satisfactorio?", tease:"Cerrar lo que empiezo y aprender afuera.",
+       body:["Para mí, desarrollar mi carrera de forma satisfactoria significa haber cerrado un proyecto, no solo empezarlo, y haber salido a aprender fuera de la UdeA."]}
+    ]},
+  { id:"plan", c:"blue", title:"Mi plan de acción", sub:"Acciones concretas, con plazos, recursos y apoyos.",
+    x:1600, y:1680, r:2, cols:"c3",
+    cards:[
+      {k:"Acción 1", t:"Fibras de alginato", tease:"Avanzar en la fase experimental.",
+       body:["Avanzar en la fase experimental de mi proyecto personal de fibras de alginato."],
+       dl:[["Plazo","Noviembre a diciembre de 2026"],["Recursos","Laboratorio de la UdeA, asesoría de profesores"]]},
+      {k:"Acción 2", t:"Pasantías internacionales", tease:"NIMS (Japón) y CERN (Suiza).",
+       body:["Postularme a pasantías internacionales: NIMS en Japón y CERN en Suiza."],
+       dl:[["Plazo","Diciembre de 2026 a enero de 2027"],["Recursos","Mis proyectos personales, CV en inglés, documentos de la UdeA, cartas de recomendación de profesores"]]},
+      {k:"Acción 3", t:"Bloque semanal fijo", tease:"Miércoles, 7:00 a 8:00 p. m.",
+       body:["Reservar un bloque fijo semanal para mis proyectos personales: los miércoles de 7:00 a 8:00 p. m."],
+       dl:[["Plazo","Desde noviembre de 2026"],["Recursos","Mi horario semanal por bloques"]]}
+    ]},
+  { id:"compromiso", c:"yellow", title:"Mi compromiso", sub:"Una acción para los próximos 30 días.",
+    x:650, y:1480, r:-2, cols:"c1", big:true,
+    cards:[
+      {k:"Hasta el 2 de diciembre de 2026", t:"Mejorar el manual de mi proyecto de fibras de alginato", tease:"Una acción concreta y medible para este mes.",
+       body:["Durante los próximos 30 días me comprometo a mejorar el manual de mi proyecto de fibras de alginato."],
+       dl:[["Desde","2 de noviembre de 2026"],["Hasta","2 de diciembre de 2026"]]}
+    ]}
+];
+const FW=780, FH=560, WW=3200, WH=2000;
+const world=document.getElementById("world"), stage=document.getElementById("stage");
+let cur=-1;
+
+// estaciones
+S.forEach((s,i)=>{
+  const f=document.createElement("section");
+  f.className="frame"; f.style.setProperty("--c",`var(--${s.c})`); f.tabIndex=0; f.setAttribute("role","group"); f.setAttribute("aria-label",s.title);
+  f.style.left=(s.x-FW/2)+"px"; f.style.top=(s.y-FH/2)+"px"; f.style.transform=`rotate(${s.r}deg)`;
+  const head=`<div class="fhead"><span class="fnum">0${i+1}</span><h2 class="ftitle">${s.title}</h2></div>`;
+  const sub=s.statement?`<p class="statement">${s.statement}</p>`:`<p class="fsub">${s.sub}</p>`;
+  const cards=s.cards.map((c,j)=>`<button class="card" data-s="${i}" data-c="${j}">
+      <span><span class="k">${c.k}</span><span class="t" style="display:block;margin-top:8px">${c.t}</span></span>
+      <span class="tease">${c.tease}</span><span class="plus" aria-hidden="true">+</span></button>`).join("");
+  f.innerHTML=head+sub+`<div class="cards ${s.cols}${s.big?" big":""}">${cards}</div>`;
+  f.addEventListener("click",e=>{ if(cur!==i){ e.stopPropagation(); go(i);} });
+  f.addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target===f) go(i); });
+  world.appendChild(f); s.el=f;
+});
+
+// hilo
+(function(){
+  const pts=[[1600,1000],...S.map(s=>[s.x,s.y])];
+  let d=`M${pts[0][0]},${pts[0][1]}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+    const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+    d+=` C${c1[0]},${c1[1]} ${c2[0]},${c2[1]} ${p2[0]},${p2[1]}`;
+  }
+  const hex={pink:"#ff9ccc",blue:"#9ad6ff",yellow:"#ffe27a"};
+  const beads=S.map(s=>`<circle class="bead" cx="${s.x}" cy="${s.y}" r="10" stroke="${hex[s.c]}"/>`).join("");
+  const defs=`<defs><linearGradient id="tg" gradientUnits="userSpaceOnUse" x1="300" y1="300" x2="2900" y2="1700"><stop offset="0" stop-color="#ff9ccc"/><stop offset=".5" stop-color="#9ad6ff"/><stop offset="1" stop-color="#ffe27a"/></linearGradient></defs>`;
+  document.getElementById("thread").innerHTML=defs+`<path class="glow" d="${d}"/><path class="core" d="${d}"/><path class="flow" d="${d}"/>${beads}`;
+})();
+
+function cam(cx,cy,s,r){
+  const W=stage.clientWidth,H=stage.clientHeight;
+  world.style.transform=`translate(${W/2}px,${H/2}px) scale(${s}) rotate(${-r}deg) translate(${-cx}px,${-cy}px)`;
+}
+function render(){
+  const W=stage.clientWidth,H=stage.clientHeight;
+  if(cur<0){ cam(WW/2,WH/2,Math.min(W/(WW+100),H/(WH+100)),0); }
+  else{ const s=S[cur]; cam(s.x,s.y,Math.min(W/(FW+80),H/(FH+70)),s.r); }
+  world.classList.toggle("zoomed",cur>=0);
+  S.forEach((s,i)=>s.el.classList.toggle("active",i===cur));
+  document.getElementById("step").textContent=cur<0?"Vista general":`${cur+1} / ${S.length} · ${S[cur].title}`;
+}
+function go(i){ cur=i; render(); }
+document.getElementById("next").onclick=()=>go(cur>=S.length-1?-1:cur+1);
+document.getElementById("prev").onclick=()=>go(cur<=-1?S.length-1:cur-1);
+document.getElementById("home").onclick=()=>go(-1);
+const hub=document.getElementById("hub");
+hub.onclick=()=>{ if(cur<0) go(0); else go(-1); };
+hub.onkeydown=e=>{ if(e.key==="Enter") hub.onclick(); };
+stage.addEventListener("click",e=>{ if(e.target===stage||e.target===world||e.target.closest("svg")) go(-1); });
+
+// ventanas emergentes
+const pop=document.getElementById("pop");
+let lastFocus=null;
+world.addEventListener("click",e=>{
+  const b=e.target.closest(".card"); if(!b) return;
+  const si=+b.dataset.s; if(si!==cur) return;
+  e.stopPropagation();
+  const c=S[si].cards[+b.dataset.c];
+  document.querySelector(".panel").style.setProperty("--c",`var(--${S[si].c})`);
+  document.getElementById("popK").textContent=`${S[si].title} · ${c.k}`;
+  document.getElementById("popTitle").textContent=c.t;
+  let html=c.body.map(p=>`<p>${p}</p>`).join("");
+  if(c.dl) html+=`<dl>${c.dl.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl>`;
+  document.getElementById("popBody").innerHTML=html;
+  lastFocus=b; pop.classList.add("open"); document.getElementById("popBack").focus();
+});
+function closePop(){ pop.classList.remove("open"); if(lastFocus) lastFocus.focus({preventScroll:true}); }
+document.getElementById("popBack").onclick=closePop;
+pop.addEventListener("click",e=>{ if(e.target===pop) closePop(); });
+
+document.addEventListener("keydown",e=>{
+  if(pop.classList.contains("open")){ if(e.key==="Escape") closePop(); return; }
+  if(e.key==="ArrowRight"||e.key===" "&&e.target===document.body){ e.preventDefault(); document.getElementById("next").click(); }
+  else if(e.key==="ArrowLeft"){ document.getElementById("prev").click(); }
+  else if(e.key==="Escape"){ go(-1); }
+});
+document.addEventListener("pointermove",e=>{
+  document.body.style.setProperty("--mx",e.clientX+"px");
+  document.body.style.setProperty("--my",e.clientY+"px");
+});
+addEventListener("resize",render);
+render();
+</script>
+</body>
+</html>
